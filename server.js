@@ -9,17 +9,20 @@ const server = app.listen(8000, () => {
 
 //socket
 const io = socket(server);
-const messeges = [];
-let users = [];
+const tasks = [];
 
 io.on('connection', (socket) => {
+  socket.emit('updateData', tasks);
 
-  socket.on('join', (userName) => {
-    users.push({ name: userName, id: socket.id });
-    socket.broadcast.emit('newUser', {
-      author: 'Chat-Boot',
-      content: `${userName} has joined the conversation`
-    })
+  socket.on('addTask', (newTask) => {
+    tasks.push(newTask);
+    socket.broadcast.emit('addTask', newTask);
+  });
+
+  socket.on('removeTask', (taskId) => {
+    const index = tasks.findIndex(task => task.id === taskId);
+    tasks.splice(index, 1);
+    socket.broadcast.emit('removeTask', taskId);
   });
 
   socket.on('message', (message) => {
@@ -28,17 +31,6 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('message', message);
   });
 
-  socket.on('disconnect', () => {
-    if (users.length > 0) {
-      const exitUser = users.find(user => user.id == socket.id);
-      const leftUsers = users.filter(user => user.id !== socket.id)
-      socket.broadcast.emit('exitUser', {
-        author: 'Chat-Boot',
-        content: exitUser + ' has left the conversation...'
-      })
-      users = leftUsers
-    }
-  })
 });
 
 app.set('html', __dirname + '/client');

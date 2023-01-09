@@ -7,27 +7,27 @@ import e from 'cors';
 const App = () => {
 
   const [socket, setSocket] = useState(null);
-  const [tasks, setTask] = useState([]);
+  const [tasks, setTasks] = useState([]);
   const [taskName, setTaskName] = useState('');
 
   useEffect(() => {
-    const socket = io.connect('http://localhost:8080', {
+    const socket = io('ws://localhost:8000', {
       transports: ['websocket'],
     })
     setSocket(socket);
 
-    socket.on('updateData', (tasksData) => updateTask(tasksData));
+    socket.on('updateData', (tasksData) => updateTasks(tasksData));
     socket.on('addTask', (newTask) => {addTask(newTask)});
     socket.on('removeTask', (taskId) => removeTask(e, taskId, false))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const updateTask = (tasksData) => {
-    setTask(tasksData);
+  const updateTasks = (tasksData) => {
+    setTasks(tasksData);
   };
 
   const removeTask = (e, taskId, local) => {
-    setTask((tasks) => tasks.filter(task => task.id !== taskId));
+    setTasks((tasks) => tasks.filter(task => task.id !== taskId));
     if (local === true)  socket.emit('removeTask', taskId );
   };
 
@@ -42,7 +42,7 @@ const App = () => {
     }
   };
 
-  const addTask = (data) => {setTask(tasks => [...tasks, data])};
+  const addTask = (data) => {setTasks(tasks => [...tasks, data])};
 
   return (
     <div className="App">
